@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { Sidebar } from "./components/ui/sidebar";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { UserAuth } from "./context/AuthContext";
+import { Header } from "./components/ui/header";
 
 // Layout component that includes the sidebar
 function Layout({ children }) {
@@ -20,7 +21,10 @@ function Layout({ children }) {
   return (
     <div className="flex h-screen">
       <Sidebar className="shrink-0" />
-      <main className="flex-1 overflow-auto p-6">{children}</main>
+      <div className="flex flex-col flex-1">
+        <Header />
+        <main className="flex-1 overflow-auto p-6">{children}</main>
+      </div>
     </div>
   );
 }
