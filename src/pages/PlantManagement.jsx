@@ -1,6 +1,7 @@
 import React from "react";
+import { PlantManagementContainer } from "@/components/plantManagement/plantManagementContainer";
 
 function PlantManagement() {
-  return <h1>This is Plant Management page</h1>;
+  return <PlantManagementContainer />;
 }
 export default PlantManagement;
