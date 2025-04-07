@@ -9,6 +9,7 @@ import { Sidebar } from "./components/ui/sidebar";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { UserAuth } from "./context/AuthContext";
 import { Header } from "./components/ui/header";
+import Irrigation from "./pages/Irrigation";
 
 // Layout component that includes the sidebar
 function Layout({ children }) {
@@ -61,7 +62,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <div>Irrigation Page</div>
+                    <Irrigation />
                   </Layout>
                 </ProtectedRoute>
               }
