@@ -1,4 +1,4 @@
-import "./App.css";
+// import "./App.css";
 import Dashboard from "./pages/dashboard";
 import PlantManagement from "./pages/plant-management";
 import LoginPage from "./pages/login-page";
