@@ -1,7 +1,7 @@
 import { Bell, PanelRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { UserAuth } from "@/context/AuthContext";
+import { UserAuth } from "@/Context/AuthContext";
 
 function HeaderGreeting() {
   const { user } = UserAuth();

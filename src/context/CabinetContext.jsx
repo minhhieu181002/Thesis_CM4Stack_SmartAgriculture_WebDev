@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { UserAuth } from "@/context/AuthContext";
+import { UserAuth } from "@/Context/AuthContext";
 import {
   getCabinetsByContainerIds,
   getAreasByCabinetId,

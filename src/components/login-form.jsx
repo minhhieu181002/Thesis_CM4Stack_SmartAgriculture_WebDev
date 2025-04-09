@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserAuth } from "@/context/AuthContext";
+import { UserAuth } from "@/Context/AuthContext";
 
 export function LoginForm({ className, ...props }) {
   const [email, setEmail] = useState("");
