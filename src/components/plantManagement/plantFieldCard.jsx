@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { PlantFieldHeader } from "./plantFieldHeader";
-import { PlantDetails } from "./plantDetails";
+import { PlantFieldHeader } from "./PlantFieldHeader";
+import { PlantDetails } from "./PlantDetails";
 import { SwipeableButton } from "react-swipeable-button";
 
 export function PlantFieldCard({ plantName, lastUpdated, status, image }) {

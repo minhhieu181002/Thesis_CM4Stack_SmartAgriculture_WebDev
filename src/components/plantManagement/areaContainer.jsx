@@ -1,4 +1,4 @@
-import { AreaCard } from "./areaCard";
+import { AreaCard } from "./AreaCard";
 
 export function AreaContainer({ areas = [] }) {
   return (
