@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { UserAuth } from "@/Context/AuthContext";
+import { UserAuth } from "@/context/AuthContext";
 
 export default function ProtectedRoute({ children }) {
   // Get context with error handling

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useCabinetContext } from "@/Context/CabinetContext";
+import { useCabinetContext } from "@/context/CabinetContext";
 import { ref, onValue } from "firebase/database";
 import { rtdb } from "../services/firebase";
 
