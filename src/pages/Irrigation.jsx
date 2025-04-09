@@ -2,10 +2,10 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Droplets } from "lucide-react";
 import { useIrrigationDevices } from "@/hooks/useIrrigationDevices";
 // Import all irrigation components
-import { ScheduleModal } from "../components/Irrigation/ScheduleModal";
-import { AreaView } from "../components/Irrigation/AreaView";
-import { PumpOverviewTable } from "../components/Irrigation/PumpOverviewTable";
-import { IrrigationTabs } from "../components/Irrigation/IrrigationTabs";
+import { ScheduleModal } from "../components/irrigation/schedule-modal";
+import { AreaView } from "../components/irrigation/area-view";
+import { PumpOverviewTable } from "../components/irrigation/pump-overview-table";
+import { IrrigationTabs } from "../components/irrigation/irrigation-tabs";
 
 // Initial pump data for the application
 // const INITIAL_PUMP_DATA = {

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
-import { UserAuth } from "@/context/AuthContext";
+import { UserAuth } from "@/context/auth-context";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { BarChart3, Droplets, Home, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";

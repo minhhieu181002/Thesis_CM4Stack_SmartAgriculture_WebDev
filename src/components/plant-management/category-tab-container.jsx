@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CategoryTabItem } from "./CategoryTabItem";
+import { CategoryTabItem } from "./category-tab-item";
 
 const categories = [
   "All",

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserAuth } from "@/context/AuthContext";
+import { UserAuth } from "@/context/auth-context";
 import { getCabinetsByContainerIds } from "@/services/firestoreServices";
 import { getAreasByCabinetId } from "@/services/firestoreServices";
 export function useUserCabinetStats() {

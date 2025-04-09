@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { AreaHeader } from "./AreaHeader";
-import { AreaStats } from "./AreaStats";
+import { AreaHeader } from "./area-header";
+import { AreaStats } from "./area-stats";
 
 export function AreaCard({ title, fields, devices, sensors }) {
   return (

@@ -1,7 +1,7 @@
-import { TitleSection } from "./TitleSection";
-import { CategoryTabContainer } from "./CategoryTabContainer";
-import { PlantFieldGrid } from "./PlantFieldGrid";
-import { ThresholdSettings } from "./ThresholdSettings";
+import { TitleSection } from "./title-section";
+import { CategoryTabContainer } from "./category-tab-container";
+import { PlantFieldGrid } from "./plant-field-grid";
+import { ThresholdSettings } from "./threshold-settings";
 
 export function PlantFieldContainer() {
   return (

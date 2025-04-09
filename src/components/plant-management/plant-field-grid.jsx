@@ -1,4 +1,4 @@
-import { PlantFieldCard } from "./PlantFieldCard";
+import { PlantFieldCard } from "./plant-field-card";
 import { Sprout, Cherry, Apple, Salad, Wheat, Palmtree } from "lucide-react";
 
 // Import images from assets

@@ -1,5 +1,5 @@
 import React from "react";
-import { PlantManagementContainer } from "@/components/PlantManagement/PlantManagementContainer";
+import { PlantManagementContainer } from "@/components/plant-management/plant-management-container";
 
 function PlantManagement() {
   return <PlantManagementContainer />;

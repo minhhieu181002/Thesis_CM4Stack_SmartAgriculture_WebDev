@@ -1,6 +1,6 @@
-import { AddAreaButton } from "./AreaButton";
-import { AreaContainer } from "./AreaContainer";
-import { PlantFieldContainer } from "./PlantFieldContainer";
+import { AddAreaButton } from "./area-button";
+import { AreaContainer } from "./area-container";
+import { PlantFieldContainer } from "./plant-field-container";
 export function PlantManagementContainer() {
   // Example data - would be fetched from an API in a real application
   const mockAreas = [

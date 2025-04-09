@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CalendarPlus } from "lucide-react";
 import { getStatusInfo } from "@/utils/getStatusInfo";
 import { useOutputDevice } from "@/hooks/useOutputDevice";
-import { useCabinetContext } from "@/context/CabinetContext";
+import { useCabinetContext } from "@/context/cabinet-context";
 
 export function PumpCard({ pump, onUpdatePump, onOpenScheduleModal }) {
   const { firstCabinet } = useCabinetContext();
