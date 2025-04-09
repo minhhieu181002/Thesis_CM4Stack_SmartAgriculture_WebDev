@@ -2,7 +2,7 @@ import { Sprout, Cpu, Gauge } from "lucide-react";
 
 export function AreaStats({ fields, devices, sensors }) {
   return (
-    <div className="space-y-3 mt-1 mr-3">
+    <div className="space-y-0.5 mt-1 mr-3">
       <div className="flex items-center gap-3 justify-between">
         <div className="flex items-center gap-2 p-2 rounded-md">
           <Sprout className="h-5 w-5" />

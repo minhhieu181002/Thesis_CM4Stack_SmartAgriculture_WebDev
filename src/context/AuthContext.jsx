@@ -7,14 +7,15 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { auth } from "../../firebase";
+import { auth } from "@/services/firebase";
+import { getUserById } from "@/services/firestoreServices";
 
 const AuthContext = createContext();
 
 export const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [userProfile, setUserProfile] = useState(null);
   // Google Sign In
   const googleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -53,21 +54,44 @@ export const AuthContextProvider = ({ children }) => {
       console.error("Sign out error:", error);
     }
   };
-
-  // Monitor auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser); // Set auth user
+
+      if (currentUser) {
+        try {
+          // Fetch user profile data
+          const userData = await getUserById(currentUser.uid);
+          console.log("User Profile Data:", userData);
+          setUserProfile(userData);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+          setUserProfile(null);
+        }
+      } else {
+        setUserProfile(null);
+      }
+
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
+  // Monitor auth state
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+  //     setUser(currentUser);
+  //     setLoading(false);
+  //   });
+
+  //   return () => unsubscribe();
+  // }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        userProfile,
         loading,
         googleSignIn,
         emailSignIn,

@@ -3,8 +3,21 @@ import { BarChart3, Droplets, Gauge, Sprout } from "lucide-react";
 import { CabinetOverviewCard } from "@/components/ui/cabinet-overview-card";
 import { SensorsDisplay } from "@/components/ui/sensors-display";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-
+import { useUserCabinetStats } from "@/hooks/useUserCabinetStats";
 function Dashboard() {
+  const { stats, loading, error } = useUserCabinetStats();
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-64">
+        Loading cabinet data...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="flex justify-center items-center h-64">
+        Error: {error}
+      </div>
+    );
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Cabinet</h1>
@@ -14,22 +27,22 @@ function Dashboard() {
         <CabinetOverviewCard
           title="Areas"
           icon={<BarChart3 className="h-8 w-8 text-primary" />}
-          number={4}
+          number={stats.numOfArea}
         />
         <CabinetOverviewCard
           title="Sensors"
           icon={<Gauge className="h-8 w-8 text-primary" />}
-          number={12}
+          number={stats.numOfSensor}
         />
         <CabinetOverviewCard
           title="Devices"
           icon={<Droplets className="h-8 w-8 text-primary" />}
-          number={6}
+          number={stats.numOfDevice}
         />
         <CabinetOverviewCard
           title="Plants"
           icon={<Sprout className="h-8 w-8 text-primary" />}
-          number={24}
+          number={stats.numOfPlant}
         />
       </div>
 

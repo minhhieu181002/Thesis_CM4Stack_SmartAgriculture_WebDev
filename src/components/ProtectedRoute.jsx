@@ -2,7 +2,18 @@ import { Navigate } from "react-router-dom";
 import { UserAuth } from "@/context/AuthContext";
 
 export default function ProtectedRoute({ children }) {
-  const { user, loading } = UserAuth();
+  // Get context with error handling
+  const authContext = UserAuth();
+
+  // Handle case when context is undefined (not inside provider)
+  if (!authContext) {
+    console.error(
+      "AuthContext is undefined. Make sure ProtectedRoute is used inside AuthContextProvider"
+    );
+    return <Navigate to="/login" />;
+  }
+
+  const { user, loading } = authContext;
 
   if (loading) {
     return (
