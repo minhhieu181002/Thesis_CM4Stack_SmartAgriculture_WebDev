@@ -1,16 +1,16 @@
 import "./App.css";
-import Dashboard from "./pages/Dashboard";
-import PlantManagement from "./pages/PlantManagement";
-import LoginPage from "./pages/LoginPage";
+import Dashboard from "./pages/dashboard";
+import PlantManagement from "./pages/plant-management";
+import LoginPage from "./pages/login-page";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthContextProvider } from "./context/auth-context";
 import { CabinetProvider } from "./context/cabinet-context";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/protected-route";
 import { Sidebar } from "./components/ui/sidebar";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { UserAuth } from "./context/auth-context";
 import { Header } from "./components/ui/header";
-import Irrigation from "./pages/Irrigation";
+import Irrigation from "./pages/irrigation";
 import { useState } from "react";
 
 // Layout component that includes the sidebar

@@ -13,6 +13,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@pages": "/src/pages",
     },
   },
 });
+import PlantManagement from "@pages/plant-management";

@@ -8,10 +8,10 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { Cabinet } from "../Models/Cabinet";
-import { Area } from "../Models/Area";
-import { User } from "../Models/User";
-import { OutputDevice } from "../Models/OutputDevice";
+import { Cabinet } from "../models/cabinet";
+import { Area } from "../models/area";
+import { User } from "../models/user";
+import { OutputDevice } from "../models/output-device";
 /**
  * Creates default user data for new users or when user document is not found
  * @param {string} userId - Firebase Auth UID
