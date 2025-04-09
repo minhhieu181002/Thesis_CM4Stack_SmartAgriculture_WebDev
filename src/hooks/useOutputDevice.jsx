@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import {
   updateOutputDeviceStatus,
   toggleOutputDeviceStatus,
-} from "../services/realtimeService";
+} from "../services/realtime-service";
 import { toast } from "sonner";
 
 /**

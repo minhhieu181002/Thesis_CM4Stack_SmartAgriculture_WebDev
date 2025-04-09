@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { UserAuth } from "@/context/auth-context";
-import { getCabinetsByContainerIds } from "@/services/firestoreServices";
-import { getAreasByCabinetId } from "@/services/firestoreServices";
+import { getCabinetsByContainerIds } from "@/services/firestore-services";
+import { getAreasByCabinetId } from "@/services/firestore-services";
 export function useUserCabinetStats() {
   const { userProfile } = UserAuth();
   console.log("User in useUserCabinetStats:", userProfile);

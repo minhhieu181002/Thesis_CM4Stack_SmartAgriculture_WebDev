@@ -8,7 +8,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "@/services/firebase";
-import { getUserById } from "@/services/firestoreServices";
+import { getUserById } from "@/services/firestore-services";
 
 const AuthContext = createContext();
 

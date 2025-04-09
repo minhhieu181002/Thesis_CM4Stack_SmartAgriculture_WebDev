@@ -4,7 +4,7 @@ import {
   getCabinetsByContainerIds,
   getAreasByCabinetId,
   getOutputDevicesByContainerId,
-} from "@/services/firestoreServices";
+} from "@/services/firestore-services";
 
 // create context
 const CabinetContext = createContext();

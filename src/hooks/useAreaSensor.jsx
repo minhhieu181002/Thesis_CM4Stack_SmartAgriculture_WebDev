@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getSensorsByAreaId } from "@/services/firestoreServices";
+import { getSensorsByAreaId } from "@/services/firestore-services";
 
 export function useAreaSensor(areaId) {
   const [sensors, setSensors] = useState([]);

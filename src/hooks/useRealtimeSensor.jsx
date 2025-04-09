@@ -1,6 +1,6 @@
 // src/hooks/useRealtimeSensor.js
 import { useState, useEffect } from "react";
-import { listenToSensorData } from "../services/realtimeService"; // Adjust path
+import { listenToSensorData } from "../services/realtime-service"; // Adjust path
 
 /**
  * Custom Hook: Subscribes to real-time updates for a specific sensor
