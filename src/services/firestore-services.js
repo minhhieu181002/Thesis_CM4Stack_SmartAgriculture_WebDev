@@ -10,7 +10,7 @@ import {
 import { db } from "./firebase";
 import { Cabinet } from "@models/Cabinet";
 import { Area } from "@models/Area";
-import { User } from ".@models/User";
+import { User } from "@models/User";
 import { OutputDevice } from "@models/OutputDevice";
 /**
  * Creates default user data for new users or when user document is not found
