@@ -7,7 +7,7 @@ import { Thermometer, Droplets, Leaf, Gauge } from "lucide-react";
 // import { useRealtimeSensor } from "@/hooks/useRealtimeSensor";
 import { useUserCabinetStats } from "@/hooks/useUserCabinetStats";
 import { useAreaSensor } from "@/hooks/useAreaSensor";
-import { RealTimeSensorCard } from "./realTimeSensorCard";
+import { RealTimeSensorCard } from "./real-time-sensor-card";
 /**
  * Status indicator component showing a colored dot and status text
  */
