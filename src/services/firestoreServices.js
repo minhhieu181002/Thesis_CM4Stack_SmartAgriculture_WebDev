@@ -11,6 +11,26 @@ import { db } from "./firebase";
 import { Cabinet } from "../models/Cabinet";
 import { Area } from "../models/Area";
 import { User } from "../models/User";
+import { OutputDevice } from "../models/OutputDevice";
+/**
+ * Creates default user data for new users or when user document is not found
+ * @param {string} userId - Firebase Auth UID
+ * @param {string|null} email - User email if available
+ * @returns {User} Default User object
+ */
+export const createDefaultUserData = (userId, email = null) => {
+  return new User({
+    id: userId,
+    name: "Demo User",
+    email: email || "demo@gmail.com",
+    containers: ["container_04"], // Default container with demo data
+    role: "User",
+    phoneNumber: "",
+    profilePicture:
+      "https://ui-avatars.com/api/?name=Demo+User&background=random",
+    createdAt: new Date(),
+  });
+};
 
 /**
  * Fetches the user document from Firestore by user ID
@@ -36,11 +56,11 @@ export const getUserById = async (userId) => {
       });
     } else {
       console.log(`No user document found for ID: ${userId}`);
-      return null;
+      return createDefaultUserData(userId);
     }
   } catch (error) {
     console.error("Error fetching user data:", error);
-    throw error;
+    return createDefaultUserData(userId);
   }
 };
 /**
@@ -131,6 +151,20 @@ export const getSensorsByAreaId = async (areaId) => {
     return sensors;
   } catch (error) {
     console.error("Error fetching sensors for area:", error);
+    throw error;
+  }
+};
+export const getOutputDevicesByContainerId = async (containerId) => {
+  if (!containerId) return [];
+  try {
+    const q = query(
+      collection(db, "outputDevices"),
+      where("containerId", "==", containerId)
+    );
+    const querySnapshot = await getDocs(q);
+    return OutputDevice.fromFirestoreSnapshot(querySnapshot);
+  } catch (error) {
+    console.error("Error fetching output devices:", error);
     throw error;
   }
 };

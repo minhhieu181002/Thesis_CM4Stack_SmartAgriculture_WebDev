@@ -22,10 +22,10 @@ export function PlantFieldCard({ plantName, lastUpdated, status, image }) {
         <div className="w-full max-w-md mx-auto px-0 py-2 bg-white">
           <SwipeableButton
             onSuccess={onSuccess} //callback function
-            text="Swipe me!" //string
+            text="Slide to harvest" //string
             text_unlocked="yeee" //string
             color="#16362d" //css hex color
-            width={250}
+            width={200}
           />
         </div>
       </CardContent>

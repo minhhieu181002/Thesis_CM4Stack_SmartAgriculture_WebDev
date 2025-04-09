@@ -2,22 +2,12 @@ import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import { UserAuth } from "@/context/AuthContext";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import {
-  BarChart3,
-  ChevronLeft,
-  ChevronRight,
-  Droplets,
-  Home,
-  LogOut,
-  User,
-} from "lucide-react";
+import { BarChart3, Droplets, Home, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 
-export function Sidebar({ className }) {
+export function Sidebar({ className, open }) {
   const { user, logOut } = UserAuth();
   const location = useLocation();
-  const [open, setOpen] = useState(true);
 
   const handleLogout = async () => {
     try {
@@ -27,9 +17,9 @@ export function Sidebar({ className }) {
     }
   };
 
-  const toggleSidebar = () => {
-    setOpen(!open);
-  };
+  // const toggleSidebar = () => {
+  //   setOpen(!open);
+  // };
 
   const navItems = [
     {
@@ -57,23 +47,6 @@ export function Sidebar({ className }) {
         className
       )}
     >
-      {/* Toggle Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-6 z-10 h-6 w-6 rounded-full border bg-background shadow-md"
-        style={{
-          right: "8px",
-        }}
-        onClick={toggleSidebar}
-      >
-        {open ? (
-          <ChevronLeft className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
-        )}
-      </Button>
-
       {/* Top Section - Profile */}
       <div
         className={cn(
