@@ -12,6 +12,7 @@ import { Cabinet } from "@models/Cabinet";
 import { Area } from "@models/Area";
 import { User } from "@models/User";
 import { OutputDevice } from "@models/OutputDevice";
+import { Plant } from "@models/Plant";
 /**
  * Creates default user data for new users or when user document is not found
  * @param {string} userId - Firebase Auth UID
@@ -165,6 +166,89 @@ export const getOutputDevicesByContainerId = async (containerId) => {
     return OutputDevice.fromFirestoreSnapshot(querySnapshot);
   } catch (error) {
     console.error("Error fetching output devices:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches plant documents by their IDs
+ * @param {string[]} plantIds - Array of plant document IDs
+ * @returns {Promise<Plant[]>} Array of Plant objects
+ */
+export const getPlantsByIds = async (plantIds) => {
+  if (!plantIds || !Array.isArray(plantIds) || plantIds.length === 0) {
+    console.log("No plant IDs provided");
+    return [];
+  }
+
+  try {
+    // Firestore limits "in" queries to 10 items, so we need to batch
+    const batchSize = 10;
+    const batches = [];
+
+    // Split plantIds into batches of 10
+    for (let i = 0; i < plantIds.length; i += batchSize) {
+      const batch = plantIds.slice(i, i + batchSize);
+
+      const q = query(
+        collection(db, "plantGroup"),
+        where(documentId(), "in", batch)
+      );
+
+      batches.push(getDocs(q));
+    }
+
+    // Wait for all batches to complete
+    const snapshots = await Promise.all(batches);
+
+    // Combine all documents into a single array
+    const plants = [];
+    snapshots.forEach((snapshot) => {
+      const batchPlants = Plant.fromFirestoreSnapshot(snapshot);
+      plants.push(...batchPlants);
+    });
+
+    return plants;
+  } catch (error) {
+    console.error("Error fetching plants by IDs:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches all plants in a specific area
+ * @param {string} areaId - Area name/ID
+ * @returns {Promise<Plant[]>} Array of Plant objects
+ */
+export const getPlantsByAreaId = async (areaId) => {
+  if (!areaId) return [];
+
+  try {
+    const q = query(
+      collection(db, "plants"),
+      where("nameOfArea", "==", areaId)
+    );
+    const querySnapshot = await getDocs(q);
+    return Plant.fromFirestoreSnapshot(querySnapshot);
+  } catch (error) {
+    console.error("Error fetching plants by area ID:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get a single plant by ID
+ * @param {string} plantId - ID of the plant to fetch
+ * @returns {Promise<Plant|null>} Plant object or null if not found
+ */
+export const getPlantById = async (plantId) => {
+  if (!plantId) return null;
+
+  try {
+    const plantDoc = await getDoc(doc(db, "plants", plantId));
+    return Plant.fromFirestore(plantDoc);
+  } catch (error) {
+    console.error(`Error fetching plant with ID ${plantId}:`, error);
     throw error;
   }
 };
