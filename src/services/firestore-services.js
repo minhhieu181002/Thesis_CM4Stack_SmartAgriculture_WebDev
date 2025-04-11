@@ -6,6 +6,9 @@ import {
   documentId,
   doc,
   getDoc,
+  arrayUnion,
+  serverTimestamp,
+  runTransaction,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { Cabinet } from "@models/Cabinet";
@@ -249,6 +252,182 @@ export const getPlantById = async (plantId) => {
     return Plant.fromFirestore(plantDoc);
   } catch (error) {
     console.error(`Error fetching plant with ID ${plantId}:`, error);
+    throw error;
+  }
+};
+/**
+ * Maps plant categories to their respective image URLs
+ */
+const PLANT_CATEGORY_IMAGES = {
+  Vegetable: "assets/images/plants/vegetable/3.0x/vegetable.png",
+  Fruit: "assets/images/plants/fruit/3.0x/fruit.png",
+  Herb: "assets/images/plants/herb/3.0x/herb.png",
+  "Food Crop": "assets/images/plants/foodCrop/3.0x/foodCrop.png",
+  "Industrial Tree":
+    "assets/images/plants/industrialCrop/3.0x/industrialCrop.png",
+};
+
+/**
+ * Adds a new plant to Firestore and updates related collections
+ *
+ * @param {Object} plantData - Plant data from the form
+ * @param {string} plantData.areaId - The ID of the area this plant belongs to
+ * @param {string} plantData.plantName - The name/variety of the plant
+ * @param {string} plantData.category - The plant category
+ * @param {Date} plantData.plantDate - The date when the plant was planted
+ * @returns {Promise<string>} - The ID of the newly created plant
+ */
+export const addPlant = async (plantData) => {
+  console.log(plantData.areaId);
+  try {
+    // Get area document to retrieve containerId
+    const areaRef = doc(db, "areas", plantData.areaId);
+    const areaDoc = await getDoc(areaRef);
+
+    if (!areaDoc.exists()) {
+      throw new Error(`Area with ID ${plantData.areaId} not found`);
+    }
+
+    const areaData = areaDoc.data();
+    const containerId = areaData.container;
+    console.log("area data is: ", areaData);
+    // console.log(containerId);
+    // const nameOfArea = areaData.name;
+
+    if (!containerId) {
+      throw new Error("Area does not have an associated container");
+    }
+
+    // Prepare plant data
+    const newPlantData = {
+      nameOfArea: plantData.areaId, // Store area ID rather than name for consistency
+      category: [plantData.category], // Store as array for potential multi-category
+      plantVariety: plantData.plantName,
+      datePlanted: plantData.plantDate || new Date(),
+      imageUrl:
+        PLANT_CATEGORY_IMAGES[plantData.category] ||
+        "assets/images/plants/default.png",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      sensors: [], // Initialize as empty arrays
+      outputDevices: [],
+      thresholds: {}, // Initialize empty thresholds object
+    };
+    console.log("new plant data is: ", newPlantData);
+    // Use a transaction to ensure all operations succeed or fail together
+    const plantId = await runTransaction(db, async (transaction) => {
+      // 1. Create the new plant document
+      const plantRef = doc(collection(db, "plantGroup"));
+      transaction.set(plantRef, newPlantData);
+
+      // 2. Update the area with the new plant ID
+      transaction.update(areaRef, {
+        plantIds: arrayUnion(plantRef.id),
+        plantCount: (areaData.plantCount || 0) + 1,
+        updatedAt: serverTimestamp(),
+      });
+
+      // 3. Update the cabinet/container document if it exists
+      const containerRef = doc(db, "containers", containerId);
+      transaction.update(containerRef, {
+        plantIds: arrayUnion(plantRef.id),
+        updatedAt: serverTimestamp(),
+      });
+
+      return plantRef.id;
+    });
+
+    console.log(`Plant added successfully with ID: ${plantId}`);
+    return plantId;
+  } catch (error) {
+    console.error("Error adding plant:", error);
+    throw error;
+  }
+};
+/**
+ * Deletes a plant and removes its references from related collections
+ *
+ * @param {string} plantId - The ID of the plant to delete
+ * @returns {Promise<boolean>} - True if deletion was successful
+ */
+export const deletePlant = async (plantId) => {
+  if (!plantId) {
+    throw new Error("Plant ID is required");
+  }
+
+  try {
+    // Get plant document to retrieve its area ID
+    const plantRef = doc(db, "plantGroup", plantId);
+    const plantDoc = await getDoc(plantRef);
+
+    if (!plantDoc.exists()) {
+      throw new Error(`Plant with ID ${plantId} not found`);
+    }
+
+    const plantData = plantDoc.data();
+    console.log(plantData);
+    const areaId = plantData.nameOfArea;
+
+    if (!areaId) {
+      throw new Error("Plant does not have an associated area");
+    }
+
+    // Get area document to retrieve container ID
+    const areaRef = doc(db, "areas", areaId);
+    const areaDoc = await getDoc(areaRef);
+
+    if (!areaDoc.exists()) {
+      throw new Error(`Area with ID ${areaId} not found`);
+    }
+
+    const areaData = areaDoc.data();
+    const containerId = areaData.container;
+    console.log(areaData);
+    console.log(containerId);
+    // Use a transaction to ensure all operations succeed or fail together
+    await runTransaction(db, async (transaction) => {
+      let containerData = null;
+      let containerRef = null;
+      if (containerId) {
+        containerRef = doc(db, "containers", containerId);
+        const containerDoc = await transaction.get(containerRef);
+
+        if (containerDoc.exists()) {
+          containerData = containerDoc.data();
+        }
+      }
+      // 1. Delete the plant document
+      transaction.delete(plantRef);
+
+      // 2. Update the area to remove the plant ID and decrement plant count
+      const currentPlantIds = areaData.plantIds || [];
+      const updatedPlantIds = currentPlantIds.filter((id) => id !== plantId);
+      const newPlantCount = Math.max((areaData.plantCount || 0) - 1, 0);
+
+      transaction.update(areaRef, {
+        plantIds: updatedPlantIds,
+        plantCount: newPlantCount,
+        updatedAt: serverTimestamp(),
+      });
+
+      // 3. Update the container document if we found it earlier
+      if (containerRef && containerData) {
+        const containerPlantIds = containerData.plantIds || [];
+        const updatedContainerPlantIds = containerPlantIds.filter(
+          (id) => id !== plantId
+        );
+
+        transaction.update(containerRef, {
+          plantIds: updatedContainerPlantIds,
+          updatedAt: serverTimestamp(),
+        });
+      }
+    });
+
+    console.log(`Plant with ID ${plantId} successfully deleted`);
+    return true;
+  } catch (error) {
+    console.error("Error deleting plant:", error);
     throw error;
   }
 };

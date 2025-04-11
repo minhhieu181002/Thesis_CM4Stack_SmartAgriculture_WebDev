@@ -3,11 +3,34 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PlantFieldHeader } from "./plant-field-header";
 import { PlantDetails } from "./plant-details";
 import { SwipeableButton } from "react-swipeable-button";
-
-export function PlantFieldCard({ plantName, lastUpdated, status, image }) {
-  const onSuccess = () => {
-    console.log("Successfully Swiped!");
+import { toast } from "sonner";
+import { deletePlant } from "@/services/firestore-services";
+export function PlantFieldCard({
+  id,
+  plantName,
+  lastUpdated,
+  status,
+  image,
+  onDeleted,
+}) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const handleSwipeSuccess = async () => {
+    try {
+      setIsDeleting(true);
+      const success = await deletePlant(id);
+      if (success && onDeleted) {
+        // Only call onDeleted if deletion was successful
+        onDeleted(id);
+        toast.success(`${plantName} has been deleted`);
+      }
+    } catch (error) {
+      toast.error("Failed to delete plant: " + error.message);
+      console.error("Error deleting plant:", error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
+
   // console.log("Image: ", image);
   const containerRef = useRef(null);
   const [buttonWidth, setButtonWidth] = useState("100%");
@@ -41,11 +64,12 @@ export function PlantFieldCard({ plantName, lastUpdated, status, image }) {
         <PlantDetails lastUpdated={lastUpdated} />
         <div ref={containerRef} className="w-full px-0 py-2 bg-white">
           <SwipeableButton
-            onSuccess={onSuccess}
+            onSuccess={handleSwipeSuccess}
             text="Slide to harvest"
             text_unlocked="Harvested!"
-            color="#16362d"
+            color="#e11d48"
             width={buttonWidth} // Use dynamic width
+            disabled={isDeleting}
           />
         </div>
       </CardContent>

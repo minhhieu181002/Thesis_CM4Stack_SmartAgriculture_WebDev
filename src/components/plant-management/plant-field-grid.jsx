@@ -6,28 +6,25 @@ import { getPlantsByIds } from "@/services/firestore-services";
 
 // Import images from assets
 import defaultPlantImage from "../../assets/images/fruit.png";
-// import lettuceImage from '../../assets/images/lettuce.jpg';
-// import basilImage from '../../assets/images/basil.jpg';
-// import appleImage from '../../assets/images/apple.jpg';
-// import riceImage from '../../assets/images/rice.jpg';
-// import palmImage from '../../assets/images/palm.jpg';
 
-// Map plant categories to icons
-// const categoryIcons = {
-//   Vegetable: <Salad className="h-6 w-6 text-green-500" />,
-//   Fruit: <Cherry className="h-6 w-6 text-red-500" />,
-//   Herb: <Sprout className="h-6 w-6 text-green-600" />,
-//   Tree: <Apple className="h-6 w-6 text-red-600" />,
-//   Grain: <Wheat className="h-6 w-6 text-amber-600" />,
-//   Decorative: <Palmtree className="h-6 w-6 text-green-700" />,
-//   default: <Sprout className="h-6 w-6 text-green-600" />,
-// };
-
-export function PlantFieldGrid({ plantIds = [] }) {
+export function PlantFieldGrid({ plantIds = [], onPlantDeleted }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [plants, setPlants] = useState([]);
+  const handlePlantDeleted = (deletedPlantId) => {
+    // Update local state immediately for responsive UI
+    setPlants((currentPlants) =>
+      currentPlants.filter((plant) => plant.id !== deletedPlantId)
+    );
 
+    // Notify parent component
+    if (onPlantDeleted) {
+      onPlantDeleted(deletedPlantId);
+    }
+  };
+  useEffect(() => {
+    console.log("PlantFieldGrid: plantIds changed", plantIds);
+  }, [plantIds]);
   useEffect(() => {
     async function fetchPlants() {
       if (!plantIds.length) {
@@ -131,12 +128,14 @@ export function PlantFieldGrid({ plantIds = [] }) {
           (
             <PlantFieldCard
               key={plant.id}
+              id={plant.id}
               plantName={plant.plantVariety}
               lastUpdated={plant.lastUpdatedText}
               // icon={field.icon}
               status={plant.status}
               image={"/src/" + plant.imageUrl || defaultPlantImage}
               category={plant.category?.[0] || "Unknown"}
+              onDeleted={handlePlantDeleted}
             />
           )
         )

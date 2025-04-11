@@ -12,6 +12,7 @@ import { UserAuth } from "./context/auth-context";
 import { Header } from "./components/ui/header";
 import Irrigation from "./pages/Irrigation";
 import { useState } from "react";
+import { Toaster } from "@/components/ui/sonner";
 
 // Layout component that includes the sidebar
 function Layout({ children }) {
@@ -25,61 +26,66 @@ function Layout({ children }) {
   }
 
   return (
-    <div className="flex h-screen">
-      <Sidebar className="shrink-0" open={sidebarOpen} />
-      <div className="flex flex-col flex-1">
-        <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+    <>
+      <div className="flex h-screen">
+        <Sidebar className="shrink-0" open={sidebarOpen} />
+        <div className="flex flex-col flex-1">
+          <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+          <main className="flex-1 overflow-auto p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light">
-      <AuthContextProvider>
-        <CabinetProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Dashboard />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/plant-management"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <PlantManagement />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/irrigation"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Irrigation />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/" element={<Navigate to="/login" />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </BrowserRouter>
-        </CabinetProvider>
-      </AuthContextProvider>
-    </ThemeProvider>
+    <>
+      <Toaster />
+      <ThemeProvider defaultTheme="light">
+        <AuthContextProvider>
+          <CabinetProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Dashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/plant-management"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <PlantManagement />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/irrigation"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Irrigation />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/" element={<Navigate to="/login" />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </BrowserRouter>
+          </CabinetProvider>
+        </AuthContextProvider>
+      </ThemeProvider>
+    </>
   );
 }
 

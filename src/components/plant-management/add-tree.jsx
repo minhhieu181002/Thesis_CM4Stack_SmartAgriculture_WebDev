@@ -26,18 +26,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-// import { useToast } from "@/components/ui/use-toast"; // Optional: for feedback
+import { addPlant } from "@/services/firestore-services"; // Import your Firestore service
 import { cn } from "@/lib/utils"; // For conditional classes
-import { format } from "date-fns"; // For formatting date
+import { addDays, format } from "date-fns";
+import { toast } from "sonner";
 import { PlusCircle, Calendar as CalendarIcon, Loader2 } from "lucide-react";
 
 // --- Mock Data ---
 // Replace with your actual list of areas, fetched from context or props
-const availableAreas = [
-  { id: "area_01", name: "Mango Area" },
-  { id: "area_02", name: "Greenhouse Section A" },
-  { id: "area_03", name: "Herb Garden Bed 1" },
-];
+// const availableAreas = [
+//   { id: "area_01", name: "Mango Area" },
+//   { id: "area_02", name: "Greenhouse Section A" },
+//   { id: "area_03", name: "Herb Garden Bed 1" },
+// ];
 
 const plantCategories = [
   "Vegetable",
@@ -54,23 +55,32 @@ const plantCategories = [
  * Props:
  * onPlantAdded: function(newPlantData) - Optional callback after successful addition.
  */
-function AddPlantDialog({ onPlantAdded }) {
-  // const { toast } = useToast(); // Optional: Initialize toast
+function AddPlantDialog({
+  availableAreas = [],
+  currentAreaId = "",
+  onPlantAdded,
+}) {
+  // const { toast } = useToast();s
   const [open, setOpen] = useState(false); // Control dialog open state
-  const [areaId, setAreaId] = useState("");
-  const [plantName, setPlantName] = useState("");
-  const [category, setCategory] = useState("");
-  const [plantDate, setPlantDate] = useState(null); // Use null for no date selected initially
+  const [areaId, setAreaId] = useState(currentAreaId || ""); // Default to current area ID);
+  const [plantName, setPlantName] = useState("Tomato");
+  const [category, setCategory] = useState("vegetable");
+  const [date, setDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({}); // For field validation errors
-
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false); // For date picker popover
+  useEffect(() => {
+    if (open && currentAreaId) {
+      setAreaId(currentAreaId);
+    }
+  }, [open, currentAreaId]);
   // Reset form state when dialog closes
   useEffect(() => {
     if (!open) {
       setAreaId("");
       setPlantName("");
       setCategory("");
-      setPlantDate(null);
+      setDate(new Date());
       setErrors({});
       setIsLoading(false);
     }
@@ -82,7 +92,7 @@ function AddPlantDialog({ onPlantAdded }) {
     if (!areaId) newErrors.areaId = "Please select an area.";
     if (!plantName.trim()) newErrors.plantName = "Plant name is required.";
     if (!category) newErrors.category = "Please select a category.";
-    if (!plantDate) newErrors.plantDate = "Please select a planting date.";
+    if (!date) newErrors.plantDate = "Please select a planting date.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0; // Return true if no errors
   };
@@ -93,26 +103,38 @@ function AddPlantDialog({ onPlantAdded }) {
       return; // Stop submission if validation fails
     }
 
-    const newPlantData = {
-      areaId,
-      plantName: plantName.trim(),
-      category,
-      plantDate,
-      // Add other default fields if needed (e.g., empty arrays for sensors/devices)
-    };
-
     try {
-      // --- Replace with your actual backend call ---
-      //   const response = await simulateAddPlant(newPlantData);
-      // --- End replacement --
+      const newPlantData = {
+        areaId,
+        plantName: plantName.trim(),
+        category,
+        date,
+      };
+      // call the firestore service
+      const plantId = await addPlant(newPlantData);
 
       if (onPlantAdded) {
         onPlantAdded(newPlantData); // Optional: Callback for parent component
       }
+      toast.success(`${plantName} has been added to the selected area.`, {
+        description: "Your plant was successfully created",
+        duration: 5000,
+      });
+
+      // Callback for parent if needed
+      if (onPlantAdded) {
+        onPlantAdded({
+          ...newPlantData,
+          id: plantId,
+        });
+      }
       setOpen(false); // Close the dialog on success
     } catch (error) {
       console.error("Failed to add plant:", error);
-
+      toast.error("Error adding plant", {
+        description: error.message || "There was a problem adding the plant.",
+        duration: 5000,
+      });
       setIsLoading(false); // Ensure loading is stopped on error
     }
   };
@@ -216,7 +238,7 @@ function AddPlantDialog({ onPlantAdded }) {
             </div>
 
             {/* Date Planted Input */}
-            <div className="grid grid-cols-4 items-center gap-4">
+            {/* <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="plantDate" className="text-right">
                 Date Planted*
               </Label>
@@ -227,33 +249,105 @@ function AddPlantDialog({ onPlantAdded }) {
                       variant={"outline"}
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !plantDate && "text-muted-foreground",
-                        errors.plantDate && "border-red-500" // Highlight if error
+                        !date && "text-muted-foreground",
+                        errors.date && "border-red-500" // Highlight if error
                       )}
                       disabled={isLoading}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {plantDate ? (
-                        format(plantDate, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
+                    <Select
+                      onValueChange={(value) =>
+                        setDate(addDays(new Date(), parseInt(value)))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="0">Today</SelectItem>
+                        <SelectItem value="1">Tomorrow</SelectItem>
+                        <SelectItem value="3">In 3 days</SelectItem>
+                        <SelectItem value="7">In a week</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <Calendar
                       mode="single"
-                      selected={plantDate}
-                      onSelect={setPlantDate}
+                      selected={date}
+                      onSelect={setDate}
                       initialFocus
                       disabled={isLoading} // Also disable calendar when loading
                     />
+                    {console.log(!date ? date : "no day is choosen")}
                   </PopoverContent>
                 </Popover>
                 {errors.plantDate && (
                   <p className="text-sm text-red-500 mt-1">
                     {errors.plantDate}
                   </p>
+                )}
+              </div>
+            </div> */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="plantDate" className="text-right">
+                Date Planted*
+              </Label>
+              <div className="col-span-3">
+                <Popover
+                  open={datePopoverOpen}
+                  onOpenChange={setDatePopoverOpen}
+                >
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground",
+                        errors.date && "border-red-500" // Match error field name
+                      )}
+                      disabled={isLoading}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Select
+                      onValueChange={(value) => {
+                        const newDate = addDays(new Date(), parseInt(value));
+                        console.log("Setting date from quick select:", newDate);
+                        setDate(newDate);
+                        setDatePopoverOpen(false); // Close after selection
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="0">Today</SelectItem>
+                        <SelectItem value="1">Tomorrow</SelectItem>
+                        <SelectItem value="3">In 3 days</SelectItem>
+                        <SelectItem value="7">In a week</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={(newDate) => {
+                        console.log("Calendar date selected:", newDate);
+                        setDate(newDate);
+                        setDatePopoverOpen(false); // Close popover after selection
+                      }}
+                      initialFocus
+                      disabled={isLoading}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.date && ( // Match error field name
+                  <p className="text-sm text-red-500 mt-1">{errors.date}</p>
                 )}
               </div>
             </div>

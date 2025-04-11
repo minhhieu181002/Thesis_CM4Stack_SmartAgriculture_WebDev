@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AreaCard } from "./area-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,8 +7,38 @@ export function AreaContainer({ areas = [] }) {
   const [activeTab, setActiveTab] = useState(
     areas.length > 0 ? areas[0].id : ""
   );
+  const [localAreas, setLocalAreas] = useState(areas);
+  useEffect(() => {
+    setLocalAreas(areas);
+  }, [areas]);
   // Get the current active area
-  const activeArea = areas.find((area) => area.id === activeTab) || {};
+  const activeArea = localAreas.find((area) => area.id === activeTab) || {};
+  const handlePlantAdded = useCallback((newPlant) => {
+    if (newPlant && newPlant.id) {
+      setLocalAreas((currentAreas) =>
+        currentAreas.map((area) => {
+          if (area.id === newPlant.areaId) {
+            // Add the new plant ID to this area
+            return {
+              ...area,
+              plantIds: [...(area.plantIds || []), newPlant.id],
+              plantCount: (area.plantCount || 0) + 1,
+            };
+          }
+          return area;
+        })
+      );
+    }
+  }, []);
+  const handlePlantDeleted = useCallback((deletedPlantId) => {
+    setLocalAreas((currentAreas) =>
+      currentAreas.map((area) => ({
+        ...area,
+        plantIds: (area.plantIds || []).filter((id) => id !== deletedPlantId),
+        plantCount: Math.max((area.plantCount || 0) - 1, 0),
+      }))
+    );
+  }, []);
   if (areas.length === 0) {
     return (
       <Card className="mb-6">
@@ -56,7 +86,13 @@ export function AreaContainer({ areas = [] }) {
           </div>
         </TabsContent>
       ))}
-      <PlantFieldContainer plantIds={activeArea.plantIds || []} />
+      <PlantFieldContainer
+        activeArea={activeArea}
+        allAreas={areas}
+        plantIds={activeArea.plantIds || []}
+        onPlantAdded={handlePlantAdded}
+        onPlantDeleted={handlePlantDeleted}
+      />
     </Tabs>
   );
 }
