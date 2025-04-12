@@ -102,7 +102,7 @@ function AddPlantDialog({
     if (!validateForm()) {
       return; // Stop submission if validation fails
     }
-
+    setIsLoading(true);
     try {
       const newPlantData = {
         areaId,
@@ -361,6 +361,7 @@ function AddPlantDialog({
               </Button>
             </DialogClose>
             <Button type="submit" disabled={isLoading}>
+              {/* {console.log(isLoading)} */}
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
