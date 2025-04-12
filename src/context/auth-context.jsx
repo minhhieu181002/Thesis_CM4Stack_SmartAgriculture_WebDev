@@ -4,11 +4,13 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInAnonymously,
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "@/services/firebase";
 import { getUserById } from "@/services/firestore-services";
+import { createDefaultUserData } from "@/services/firestore-services";
 
 const AuthContext = createContext();
 
@@ -16,6 +18,25 @@ export const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
+
+  const guestSignIn = async () => {
+    try {
+      const result = await signInAnonymously(auth);
+
+      // Create default user data for anonymous user
+      const guestUser = await createDefaultUserData(
+        result.user.uid,
+        null, // No email for anonymous users
+        true
+      );
+      setUserProfile(guestUser);
+      return result;
+    } catch (error) {
+      console.error("Guest sign in error:", error);
+      throw error;
+    }
+  };
+
   // Google Sign In
   const googleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -60,10 +81,21 @@ export const AuthContextProvider = ({ children }) => {
 
       if (currentUser) {
         try {
-          // Fetch user profile data
-          const userData = await getUserById(currentUser.uid);
-          console.log("User Profile Data:", userData);
-          setUserProfile(userData);
+          // Check if anonymous user
+          if (currentUser.isAnonymous) {
+            // Create or get guest user profile
+            const guestUser = await createDefaultUserData(
+              currentUser.uid,
+              null,
+              true
+            );
+            setUserProfile(guestUser);
+          } else {
+            // Regular user flow
+            const userData = await getUserById(currentUser.uid);
+            console.log("User Profile Data:", userData);
+            setUserProfile(userData);
+          }
         } catch (error) {
           console.error("Error fetching user profile:", error);
           setUserProfile(null);
@@ -77,15 +109,6 @@ export const AuthContextProvider = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
-  // Monitor auth state
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-  //     setUser(currentUser);
-  //     setLoading(false);
-  //   });
-
-  //   return () => unsubscribe();
-  // }, []);
 
   return (
     <AuthContext.Provider
@@ -95,6 +118,7 @@ export const AuthContextProvider = ({ children }) => {
         loading,
         googleSignIn,
         emailSignIn,
+        guestSignIn,
         createUser,
         logOut,
       }}

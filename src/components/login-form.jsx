@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -14,11 +15,11 @@ import { Label } from "@/components/ui/label";
 import { UserAuth } from "@/context/auth-context";
 
 export function LoginForm({ className, ...props }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  // const [email, setEmail] = useState("");
+  // const [password, setPassword] = useState("");
+  // const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { googleSignIn, emailSignIn } = UserAuth();
+  const { googleSignIn, guestSignIn } = UserAuth();
 
   const handleGoogleSignIn = async () => {
     try {
@@ -30,17 +31,28 @@ export function LoginForm({ className, ...props }) {
   };
 
   const handleEmailSignIn = async (e) => {
-    e.preventDefault();
-    setError("");
+    // e.preventDefault();
+    // setError("");
+    // try {
+    //   await emailSignIn(email, password);
+    //   navigate("/dashboard");
+    // } catch (error) {
+    //   setError(error.message);
+    //   console.error("Error signing in with email:", error);
+    // }
+  };
+  const handleLoginAsGuest = async () => {
     try {
-      await emailSignIn(email, password);
+      await guestSignIn();
+      toast.success("Logged in as guest", {
+        description: "You're using a demo account with limited features",
+      });
       navigate("/dashboard");
     } catch (error) {
-      setError(error.message);
-      console.error("Error signing in with email:", error);
+      console.error("Error signing in as guest:", error);
+      toast.error("Failed to sign in as guest");
     }
   };
-
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -72,8 +84,34 @@ export function LoginForm({ className, ...props }) {
                   Or continue with
                 </span>
               </div>
-              {error && <div className="text-destructive text-sm">{error}</div>}
-              <div className="grid gap-6">
+              <div className="flex flex-col gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleLoginAsGuest}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-venetian-mask-icon lucide-venetian-mask"
+                  >
+                    <path d="M18 11c-1.5 0-2.5.5-3 2" />
+                    <path d="M4 6a2 2 0 0 0-2 2v4a5 5 0 0 0 5 5 8 8 0 0 1 5 2 8 8 0 0 1 5-2 5 5 0 0 0 5-5V8a2 2 0 0 0-2-2h-3a8 8 0 0 0-5 2 8 8 0 0 0-5-2z" />
+                    <path d="M6 11c1.5 0 2.5.5 3 2" />
+                  </svg>
+                  Login as guest
+                </Button>
+              </div>
+              {/* {error && <div className="text-destructive text-sm">{error}</div>} */}
+              {/* <div className="grid gap-6">
                 <div className="grid gap-3">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -106,7 +144,7 @@ export function LoginForm({ className, ...props }) {
                 <Button type="submit" className="w-full">
                   Login
                 </Button>
-              </div>
+              </div> */}
               <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}
                 <a href="#" className="underline underline-offset-4">

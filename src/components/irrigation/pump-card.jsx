@@ -50,7 +50,7 @@ export function PumpCard({ pump, onUpdatePump, onOpenScheduleModal }) {
   const statusInfo = getStatusInfo(pump);
 
   return (
-    <Card className="bg-gray-50 border border-gray-200 rounded-lg p-8">
+    <Card className="bg-gray-50 border border-gray-200 rounded-lg p-8 ">
       {/* Main 2-Column Layout */}
       <div className="flex flex-col md:flex-row gap-4 justify-between">
         {/* Column 1: Pump Info */}
@@ -58,7 +58,7 @@ export function PumpCard({ pump, onUpdatePump, onOpenScheduleModal }) {
           <CardTitle className="font-semibold text-gray-800">
             {pump.name}
           </CardTitle>
-          <CardDescription className="text-sm text-gray-500 pump-status mt-2">
+          <CardDescription className="text-base text-gray-500 pump-status mt-2">
             Status:{" "}
             {pump.mode === "Manual"
               ? `${statusInfo.text} (Manual)`
@@ -76,7 +76,7 @@ export function PumpCard({ pump, onUpdatePump, onOpenScheduleModal }) {
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Left Controls Column: Mode Selector */}
             <div className="sm:w-1/2">
-              <Label className="text-sm font-medium text-gray-600 mb-2 block">
+              <Label className="text-base font-medium text-gray-600 mb-2 block">
                 Mode:
               </Label>
               <RadioGroup
@@ -134,12 +134,12 @@ export function PumpCard({ pump, onUpdatePump, onOpenScheduleModal }) {
 
             {/* Right Controls Column: Mode-specific Controls */}
             <div className="sm:w-1/2">
-              <Label className="text-sm font-medium text-gray-600 mb-2 block">
+              <Label className="text-base font-medium text-gray-600 mb-2 block">
                 {pump.mode === "Manual" ? (
                   <>
                     State:{" "}
                     <span
-                      className={`manual-state-text text-sm font-medium px-1.5 ${
+                      className={`manual-state-text text-2xl font-medium px-1.5 ${
                         statusInfo.colorClass
                       } ${isUpdating ? "opacity-50" : ""}`}
                     >
@@ -166,7 +166,7 @@ export function PumpCard({ pump, onUpdatePump, onOpenScheduleModal }) {
               ) : (
                 <div className="auto-controls flex items-center space-x-2 py-8">
                   <span
-                    className="text-sm text-gray-600 schedule-display truncate "
+                    className="text-base text-gray-600 schedule-display truncate "
                     title={
                       pump.schedule
                         ? `ON ${pump.schedule.start} - ${pump.schedule.end}`
