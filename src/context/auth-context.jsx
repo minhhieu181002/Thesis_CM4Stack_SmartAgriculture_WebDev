@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "@/services/firebase";
-import { getUserById } from "@/services/firestore-services";
+import { createUserDocument } from "@/services/firestore-services";
 import { createDefaultUserData } from "@/services/firestore-services";
 
 const AuthContext = createContext();
@@ -21,6 +21,7 @@ export const AuthContextProvider = ({ children }) => {
 
   const guestSignIn = async () => {
     try {
+      setLoading(true);
       const result = await signInAnonymously(auth);
 
       // Create default user data for anonymous user
@@ -30,6 +31,8 @@ export const AuthContextProvider = ({ children }) => {
         true
       );
       setUserProfile(guestUser);
+      setUser(result.user);
+      setLoading(false);
       return result;
     } catch (error) {
       console.error("Guest sign in error:", error);
@@ -77,8 +80,8 @@ export const AuthContextProvider = ({ children }) => {
   };
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser); // Set auth user
-
+      // setUser(currentUser); // Set auth user
+      setLoading(true);
       if (currentUser) {
         try {
           // Check if anonymous user
@@ -91,10 +94,11 @@ export const AuthContextProvider = ({ children }) => {
             );
             setUserProfile(guestUser);
           } else {
-            // Regular user flow
-            const userData = await getUserById(currentUser.uid);
-            console.log("User Profile Data:", userData);
-            setUserProfile(userData);
+            // // Regular user flow
+            const userProfile = await createUserDocument(currentUser);
+            console.log("User Profile Data:", userProfile);
+            setUser(currentUser);
+            setUserProfile(userProfile);
           }
         } catch (error) {
           console.error("Error fetching user profile:", error);

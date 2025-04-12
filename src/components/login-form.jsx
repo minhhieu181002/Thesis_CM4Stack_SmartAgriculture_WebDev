@@ -1,4 +1,4 @@
-import { useState } from "react";
+// import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,24 +30,22 @@ export function LoginForm({ className, ...props }) {
     }
   };
 
-  const handleEmailSignIn = async (e) => {
-    // e.preventDefault();
-    // setError("");
-    // try {
-    //   await emailSignIn(email, password);
-    //   navigate("/dashboard");
-    // } catch (error) {
-    //   setError(error.message);
-    //   console.error("Error signing in with email:", error);
-    // }
-  };
+  const handleEmailSignIn = function () {};
   const handleLoginAsGuest = async () => {
     try {
+      // Show loading toast
+      // toast.loading("Logging in as guest...");
+
+      // Sign in
       await guestSignIn();
+
+      // Success message
       toast.success("Logged in as guest", {
         description: "You're using a demo account with limited features",
       });
       navigate("/dashboard");
+
+      console.log("Logged in as guest");
     } catch (error) {
       console.error("Error signing in as guest:", error);
       toast.error("Failed to sign in as guest");
@@ -57,7 +55,7 @@ export function LoginForm({ className, ...props }) {
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome back</CardTitle>
+          <CardTitle className="text-xl">Welcome to GreenFarm</CardTitle>
           <CardDescription>Login with your Google account</CardDescription>
         </CardHeader>
         <CardContent>

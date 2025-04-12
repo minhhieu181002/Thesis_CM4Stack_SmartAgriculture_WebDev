@@ -6,9 +6,11 @@ import {
   documentId,
   doc,
   getDoc,
+  setDoc,
   arrayUnion,
   serverTimestamp,
   runTransaction,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { Cabinet } from "@models/Cabinet";
@@ -16,6 +18,44 @@ import { Area } from "@models/Area";
 import { User } from "@models/User";
 import { OutputDevice } from "@models/OutputDevice";
 import { Plant } from "@models/Plant";
+/**
+ * Connect a container to a user
+ * @param {string} userId - The user ID
+ * @param {string} containerId - The container ID to connect
+ * @returns {Promise<void>}
+ */
+export const connectContainerToUser = async (userId, containerId) => {
+  try {
+    // check the container exist or not
+    const containerRef = doc(db, "containers", containerId);
+    const containerSnap = await getDoc(containerRef);
+    if (!containerSnap.exists()) {
+      throw new Error(`Container with ID ${containerId} does not exist`);
+    }
+    // Then check if the container is already connected to the user
+    const containerData = containerSnap.data();
+    // if (containerData.userId && containerData.userId !== userId) {
+    //   throw new Error("This container is already assigned to another user");
+    // }
+    // Update the container with the user ID if it's not already set
+    if (!containerData.userId) {
+      await updateDoc(containerRef, {
+        userId: userId,
+        updatedAt: serverTimestamp(),
+      });
+    }
+    // Update the user document to include this container
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      containers: arrayUnion(containerId),
+      updatedAt: serverTimestamp(),
+    });
+    return { success: true, message: "Container connected successfully" };
+  } catch (error) {
+    console.error("Error connecting container:", error);
+    throw error;
+  }
+};
 /**
  * Creates default user data for new users or when user document is not found
  * @param {string} userId - Firebase Auth UID
@@ -35,7 +75,59 @@ export const createDefaultUserData = (userId, email = null) => {
     createdAt: new Date(),
   });
 };
+/**
+ * Creates or fetches a user document in Firestore
+ * When a new user signs up, this ensures they have a document in the users collection
+ *
+ * @param {Object} authUser - The Firebase auth user object
+ * @param {Object} additionalData - Optional additional user data
+ * @returns {Promise<User>} - The User object
+ */
+export const createUserDocument = async (authUser, additionalData) => {
+  if (!authUser) {
+    throw new Error("No authentication user provided");
+  }
+  try {
+    const userDocRef = doc(db, "users", authUser.uid);
+    const userSnapshot = await getDoc(userDocRef);
+    // check if user document exists or not
+    if (!userSnapshot.exists()) {
+      const { displayName, email, photoURL } = authUser;
+      const createAt = new Date();
+      // Safe log - only log containers if additionalData has them
+      console.log("container: ", additionalData?.containers || "none provided");
 
+      // create user data with safe fallbacks
+      const userData = {
+        id: authUser.uid,
+        name: displayName || additionalData?.name || "Demo User",
+        email: email || additionalData?.email || "",
+        containers: [],
+        role: additionalData?.role || "User",
+        phoneNumber: additionalData?.phoneNumber || "",
+        profilePicture:
+          photoURL ||
+          additionalData?.profilePicture ||
+          "https://ui-avatars.com/api/?name=" +
+            encodeURIComponent(displayName || "Demo User"),
+        createdAt: createAt,
+      };
+      // add user data to firestore
+      await setDoc(userDocRef, userData);
+      console.log("User document created:", userData);
+
+      return new User(userData);
+    }
+    return User.fromFirestore({
+      id: userSnapshot.id,
+      exists: true,
+      data: () => userSnapshot.data(),
+    });
+  } catch (error) {
+    console.error("Error creating user document:", error);
+    throw error;
+  }
+};
 /**
  * Fetches the user document from Firestore by user ID
  * @param {string} userId - Firebase Auth UID
