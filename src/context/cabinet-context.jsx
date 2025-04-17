@@ -20,7 +20,7 @@ export function CabinetProvider({ children }) {
     numOfPlant: 0,
     numOfSensor: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {

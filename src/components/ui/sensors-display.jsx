@@ -327,20 +327,6 @@ function processSensorType(sensorName) {
  * in a two-column layout with an Area filter
  */
 export function SensorsDisplay() {
-  // const { sensorData, isLoading, error } = useRealtimeSensor();
-  // if (isLoading) {
-  //   return <div> Loading sensor for {sensorId}...</div>;
-  // }
-  // if (error) {
-  //   return (
-  //     <div style={{ color: "red" }}>
-  //       Error loading sensor {sensorId}: {error.message}
-  //     </div>
-  //   );
-  // }
-  // if (!sensorData) {
-  //   return <div>No sensor data available</div>;
-  // }
   const { areas, loading: areasLoading } = useUserCabinetStats();
   const [selectedAreaId, setSelectedAreaId] = useState("");
 

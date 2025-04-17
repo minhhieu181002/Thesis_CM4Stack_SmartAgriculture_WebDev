@@ -14,7 +14,6 @@ export function TitleSection({ activeArea, allAreas = [], onPlantAdded }) {
     <div className="mb-4 flex items-center justify-between">
       <h2 className="text-2xl font-bold">Plant Fields</h2>
       <div>
-        {/* Button that opens the dialog */}
         <Button
           variant="outline"
           className="mx-3"
@@ -28,6 +27,7 @@ export function TitleSection({ activeArea, allAreas = [], onPlantAdded }) {
         <ThresholdSettingsDialog
           open={showThresholdDialog}
           onOpenChange={setShowThresholdDialog}
+          currentAreaId={activeArea.id}
         />
 
         <AddPlantDialog

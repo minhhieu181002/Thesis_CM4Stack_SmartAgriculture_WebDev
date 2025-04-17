@@ -354,8 +354,8 @@ const PLANT_CATEGORY_IMAGES = {
   Vegetable: "assets/images/plants/vegetable/3.0x/vegetable.png",
   Fruit: "assets/images/plants/fruit/3.0x/fruit.png",
   Herb: "assets/images/plants/herb/3.0x/herb.png",
-  "Food Crop": "assets/images/plants/foodCrop/3.0x/foodCrop.png",
-  "Industrial Tree":
+  Food_Crop: "assets/images/plants/foodCrop/3.0x/foodCrop.png",
+  Industrial_Tree:
     "assets/images/plants/industrialCrop/3.0x/industrialCrop.png",
 };
 
@@ -521,5 +521,96 @@ export const deletePlant = async (plantId) => {
   } catch (error) {
     console.error("Error deleting plant:", error);
     throw error;
+  }
+};
+
+/**
+ * Fetches threshold settings for a sensor
+ * @param {string} sensorId - ID of the sensor
+ * @returns {Promise<Object|null>} Threshold settings or null if not found
+ */
+export const getThresholdBySensorId = async (sensorId) => {
+  if (!sensorId) return null;
+  try {
+    const sensorDoc = await getDoc(doc(db, "sensors", sensorId));
+    if (!sensorDoc.exists()) {
+      console.log(`No sensor found with ID: ${sensorId}`);
+      return null;
+    }
+    const sensorData = sensorDoc.data();
+    const thresholdId = sensorData.thresholdId;
+    if (!thresholdId) {
+      console.log(`No threshold ID found for sensor: ${sensorId}`);
+      return null;
+    }
+
+    // fetch the threshold document
+    const thresholdDoc = await getDoc(doc(db, "thresholds", thresholdId));
+    if (!thresholdDoc.exists()) {
+      console.log(`No threshold found with ID: ${thresholdId}`);
+      return null;
+    }
+    return {
+      id: thresholdDoc.id,
+      ...thresholdDoc.data(),
+    };
+  } catch (error) {
+    console.error(`Error fetching threshold for sensor ${sensorId}:`, error);
+    return null;
+  }
+};
+
+/**
+ * Saves threshold settings for a sensor to Firestore
+ * @param {string} sensorId - ID of the sensor
+ * @param {Object} thresholdData - Threshold data to save
+ * @returns {Promise<boolean>} - True if the save was successful
+ */
+export const saveThresholdForSensor = async (sensorId, thresholdData) => {
+  if (!sensorId || !thresholdData) {
+    console.error("Sensor ID and threshold data are required");
+    return false;
+  }
+
+  try {
+    // Fetch the sensor document to get the threshold ID
+    const sensorDoc = await getDoc(doc(db, "sensors", sensorId));
+    if (!sensorDoc.exists()) {
+      console.error(`Sensor with ID ${sensorId} not found`);
+      return false;
+    }
+
+    const sensorData = sensorDoc.data();
+    let thresholdId = sensorData.thresholdId;
+
+    // If no threshold ID exists, create a new threshold document
+    if (!thresholdId) {
+      const newThresholdRef = doc(collection(db, "thresholds"));
+      thresholdData.createdAt = serverTimestamp();
+      thresholdData.updatedAt = serverTimestamp();
+      thresholdData.sensorId = sensorId;
+      thresholdData.sensorType = sensorData.type || "unknown";
+
+      await setDoc(newThresholdRef, thresholdData);
+
+      // Update the sensor document with the new threshold ID
+      await updateDoc(doc(db, "sensors", sensorId), {
+        thresholdId: newThresholdRef.id,
+        updatedAt: serverTimestamp(),
+      });
+
+      console.log(`New threshold created for sensor ${sensorId}`);
+      return true;
+    }
+
+    // Update the existing threshold document
+    thresholdData.updatedAt = serverTimestamp();
+    await updateDoc(doc(db, "thresholds", thresholdId), thresholdData);
+
+    console.log(`Threshold updated for sensor ${sensorId}`);
+    return true;
+  } catch (error) {
+    console.error(`Error saving threshold for sensor ${sensorId}:`, error);
+    return false;
   }
 };

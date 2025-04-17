@@ -2,6 +2,7 @@ import { Bell, PanelRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserAuth } from "@/context/auth-context";
+import { TemperatureAlertBell } from "@/components/temperature-alert-bell";
 
 function HeaderGreeting() {
   const { user } = UserAuth();
@@ -64,7 +65,7 @@ export function Header({ sidebarOpen, toggleSidebar }) {
       </div>
       <div className="flex items-center gap-2 mr-6">
         <SearchBar />
-        <NotificationIcon />
+        <TemperatureAlertBell />
       </div>
     </header>
   );

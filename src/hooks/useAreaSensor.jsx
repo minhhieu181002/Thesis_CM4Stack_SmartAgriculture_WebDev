@@ -19,6 +19,7 @@ export function useAreaSensor(areaId) {
         const areaSensors = await getSensorsByAreaId(areaId);
         console.log("Fetched sensors:", areaSensors);
         setSensors(areaSensors || []);
+        setLoading(false);
       } catch (err) {
         console.error("Error fetching sensors:", err);
         setError(err.message);
