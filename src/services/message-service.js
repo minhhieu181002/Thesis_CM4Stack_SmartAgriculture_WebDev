@@ -84,10 +84,14 @@ export const storeUserToken = async (userId, token) => {
 export const subscribeToTopics = async (token, topics) => {
   try {
     const response = await fetch(
-      "https://smart-agriculture-fcm-topic-manager.onrender.com/api/subscribe-proxy",
+      "https://smart-agriculture-fcm-topic-manager.onrender.com/api/subscribe",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key":
+            "fbee5863781c7a6bdea558eb8958588e06e4301ca5cf05cb74fd33aba8eb0945",
+        },
         body: JSON.stringify({ token, topics }),
       }
     );
@@ -96,7 +100,7 @@ export const subscribeToTopics = async (token, topics) => {
       throw new Error(`Failed to subscribe to topic: ${response.statusText}`);
     }
 
-    console.log(`Subscribed to topic: ${topics.join(", ")} successfully`);
+    console.log(`Subscribed to topic: ${topics.join(", ")}`);
     return true;
   } catch (error) {
     console.error(`Error subscribing to topic:`, error);
@@ -111,10 +115,7 @@ export const subscribeToTopics = async (token, topics) => {
  */
 export const onForegroundMessage = (callback) => {
   return onMessage(messaging, (payload) => {
-    console.log(
-      "Message received in the foreground:",
-      JSON.stringify(payload, null, 2)
-    );
+    console.log("Message received in the foreground:", payload);
     callback(payload);
   });
 };

@@ -7,6 +7,41 @@ import { AreaView } from "../components/irrigation/area-view";
 import { PumpOverviewTable } from "../components/irrigation/pump-overview-table";
 import { IrrigationTabs } from "../components/irrigation/irrigation-tabs";
 
+// Initial pump data for the application
+// const INITIAL_PUMP_DATA = {
+//   "FY-A1": {
+//     id: "FY-A1",
+//     name: "Pump FY-A1 (Lawn Sprinklers)",
+//     area: "Front Yard",
+//     mode: "Manual",
+//     manualState: false,
+//     schedule: null,
+//   },
+//   "FY-B1": {
+//     id: "FY-B1",
+//     name: "Pump FY-B1 (Flower Beds)",
+//     area: "Front Yard",
+//     mode: "Auto",
+//     manualState: false,
+//     schedule: { start: "07:00", end: "07:10" },
+//   },
+//   "VG-A1": {
+//     id: "VG-A1",
+//     name: "Pump VG-A1 (Drip System)",
+//     area: "Vegetable Garden",
+//     mode: "Manual",
+//     manualState: false,
+//     schedule: null,
+//   },
+//   "BY-A1": {
+//     id: "BY-A1",
+//     name: "Pump BY-A1 (Patio Misters)",
+//     area: "Backyard",
+//     mode: "Manual",
+//     manualState: false,
+//     schedule: null,
+//   },
+// };
 const FALLBACK_PUMP_DATA = {
   "demo-pump-1": {
     id: "demo-pump-1",
@@ -47,6 +82,12 @@ export default function Irrigation() {
       setManagedPumpData(pumpData);
     }
   }, [pumpData]);
+
+  // useEffect(() => {
+  //   if (areaNames.length > 0 && activeTab === "Overview") {
+  //     setActiveTab(areaNames);
+  //   }
+  // }, [areaNames, activeTab]);
 
   // All callback hooks
   const handleUpdatePump = useCallback((pumpId, updates) => {
