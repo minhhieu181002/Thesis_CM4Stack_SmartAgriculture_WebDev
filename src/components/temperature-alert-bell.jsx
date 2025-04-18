@@ -79,7 +79,7 @@ export function TemperatureAlertBell() {
         className="w-80 max-h-[600px] overflow-y-auto"
       >
         <DropdownMenuLabel className="flex justify-between items-center">
-          <span>Temperature Alerts</span>
+          <span>Notification Alerts</span>
           <div className="flex gap-1">
             {notifications.length > 0 && (
               <>

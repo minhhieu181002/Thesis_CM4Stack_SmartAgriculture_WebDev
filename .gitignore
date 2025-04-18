@@ -23,3 +23,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+public/firebase-messaging-sw.js
+firebase-messaging-sw.js
