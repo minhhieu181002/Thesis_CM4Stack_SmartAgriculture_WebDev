@@ -25,17 +25,17 @@ export function Sidebar({ className, open }) {
     {
       name: "Dashboard",
       path: "/dashboard",
-      icon: <Home className="h-5 w-5" />,
+      icon: <Home className="h-8 w-8" />,
     },
     {
       name: "Plant Management",
       path: "/plant-management",
-      icon: <BarChart3 className="h-5 w-5" />,
+      icon: <BarChart3 className="h-8 w-8" />,
     },
     {
       name: "Irrigation",
       path: "/irrigation",
-      icon: <Droplets className="h-5 w-5" />,
+      icon: <Droplets className="h-8 w-8" />,
     },
   ];
 
@@ -70,14 +70,14 @@ export function Sidebar({ className, open }) {
       </div>
 
       {/* Middle Section - Navigation Menu */}
-      <div className="flex-1 overflow-auto py-2">
+      <div className="flex-1 overflow-auto py-6">
         <nav className="grid gap-1 px-2">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
-                "hover:bg-sidebar-accent/50 flex items-center gap-3 rounded-lg px-3 py-2 text-base transition-all",
+                "hover:bg-sidebar-accent/50 flex items-center gap-3 rounded-lg px-3 py-2 mb-4 text-xl transition-all",
                 location.pathname === item.path
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
                   : "text-sidebar-foreground/70",

@@ -36,7 +36,7 @@ function ActiveIndicator({ status }) {
   );
 }
 function StatusIndicator({ status }) {
-  const isNormal = status.toLowerCase() === "normal";
+  const isNormal = status.toLowerCase() === "active";
 
   return (
     <div className="flex items-center gap-2">

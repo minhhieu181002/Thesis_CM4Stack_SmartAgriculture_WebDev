@@ -43,21 +43,25 @@ function Dashboard() {
               title="Areas"
               icon={<BarChart3 className="h-8 w-8 text-primary" />}
               number={stats.numOfArea}
+              description="Number of areas"
             />
             <CabinetOverviewCard
               title="Sensors"
               icon={<Gauge className="h-8 w-8 text-primary" />}
               number={stats.numOfSensor}
+              description="Number of sensors"
             />
             <CabinetOverviewCard
               title="Devices"
               icon={<Droplets className="h-8 w-8 text-primary" />}
               number={stats.numOfDevice}
+              description="Number of devices"
             />
             <CabinetOverviewCard
               title="Plants"
               icon={<Sprout className="h-8 w-8 text-primary" />}
               number={stats.numOfPlant}
+              description="Number of plants"
             />
           </div>
 
