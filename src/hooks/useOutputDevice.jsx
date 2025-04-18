@@ -3,7 +3,7 @@ import {
   updateOutputDeviceStatus,
   toggleOutputDeviceStatus,
 } from "../services/realtime-service";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 /**
  * Custom hook for controlling output devices in the RTDB
@@ -20,12 +20,12 @@ export function useOutputDevice(containerId) {
       setIsUpdating(true);
       try {
         await updateOutputDeviceStatus(containerId, deviceId, status);
-        toast(`Device ${deviceId} updated to ${status}`);
+        // toast(`Device ${deviceId} updated to ${status}`);
 
         return true;
       } catch (error) {
         console.error("Failed to update device:", error);
-        toast.error(`Update failed: ${error.message}`);
+        // toast.error(`Update failed: ${error.message}`);
         return false;
       } finally {
         setIsUpdating(false);
@@ -41,13 +41,13 @@ export function useOutputDevice(containerId) {
       setIsUpdating(true);
       try {
         const newStatus = await toggleOutputDeviceStatus(containerId, deviceId);
-        toast.success("Device toggled", {
-          description: `${deviceId} is now ${newStatus}`,
-        });
+        // toast.success("Device toggled", {
+        //   description: `${deviceId} is now ${newStatus}`,
+        // });
         return newStatus;
       } catch (error) {
         console.error("Failed to toggle device:", error);
-        toast.error(`Toggle failed: ${error.message}`);
+        // toast.error(`Toggle failed: ${error.message}`);
         return null;
       } finally {
         setIsUpdating(false);
