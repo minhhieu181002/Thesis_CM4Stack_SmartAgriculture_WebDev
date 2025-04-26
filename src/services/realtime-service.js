@@ -1,6 +1,6 @@
 import { ref, onValue, off, update } from "firebase/database"; // Import RTDB functions
 import { rtdb } from "./firebase"; // Import the initialized RTDB instance
-
+import { Timestamp } from "firebase/firestore";
 /**
  * Listens for real-time updates on a specific sensor within a container.
  *
@@ -175,3 +175,106 @@ export const toggleOutputDeviceStatus = async (containerId, deviceId) => {
     throw error;
   }
 };
+
+export const updateSchedulerTimesRealTime = async (
+  containerId,
+  schedulerId,
+  schedulerData
+) => {
+  try {
+    if (!containerId || !schedulerId) {
+      console.error("Invalid container or scheduler Id");
+      return false;
+    }
+    const { startTime, endTime, date } = schedulerData;
+    if (!startTime || !endTime || !date) {
+      console.error("Invalid schedule data provided");
+      return false;
+    }
+    const [startHours, startMinutes] = startTime.split(":").map(Number);
+    const [endHours, endMinutes] = endTime.split(":").map(Number);
+
+    // create date object
+    const scheduledDate = new Date(date);
+
+    const startDateTime = new Date(scheduledDate);
+    startDateTime.setHours(startHours, startMinutes, 0, 0);
+
+    const endDateTime = new Date(scheduledDate);
+    endDateTime.setHours(endHours, endMinutes, 0, 0);
+
+    const startTimestamp = formatTimeString(startDateTime);
+    const endTimestamp = formatTimeString(endDateTime);
+    const schedulerPath = `containers/${containerId}/${schedulerId}`;
+    const schedulerRef = ref(rtdb, schedulerPath);
+
+    let schedulerExists = false;
+
+    await new Promise((resolve) => {
+      onValue(
+        schedulerRef,
+        (snapshot) => {
+          schedulerExists = snapshot.exists();
+          resolve();
+        },
+        { onlyOnce: true }
+      );
+    });
+
+    if (!schedulerExists) {
+      console.error(`Scheduler ${schedulerId} not found in RTDB`);
+      return false;
+    }
+    // update document
+    console.log(startTimestamp);
+    console.log(endTimestamp);
+    await update(schedulerRef, {
+      startTime: startTimestamp,
+      endTime: endTimestamp,
+    });
+    console.log(
+      `Real time schedule updated for scheduler ${schedulerId} successfully`
+    );
+    return true;
+  } catch (err) {
+    console.error(`Error updating real time schedule:`, err);
+    return false;
+  }
+};
+
+function formatTimeString(dateObj) {
+  // Get the month name
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const month = months[dateObj.getMonth()];
+
+  // Get the day and year
+  const day = dateObj.getDate();
+  const year = dateObj.getFullYear();
+
+  // Format hours and minutes with leading zeros if needed
+  const hours = dateObj.getHours().toString().padStart(2, "0");
+  const minutes = dateObj.getMinutes().toString().padStart(2, "0");
+  const seconds = dateObj.getSeconds().toString().padStart(2, "0");
+
+  // Get the timezone offset in hours
+  const timezoneOffset = -(dateObj.getTimezoneOffset() / 60);
+  const timezoneString = `UTC${
+    timezoneOffset >= 0 ? "+" : ""
+  }${timezoneOffset}`;
+
+  // Construct the formatted string
+  return `${month} ${day}, ${year} at ${hours}:${minutes}:${seconds} ${timezoneString}`;
+}

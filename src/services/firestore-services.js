@@ -11,6 +11,7 @@ import {
   serverTimestamp,
   runTransaction,
   updateDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { Cabinet } from "@models/Cabinet";
@@ -18,6 +19,8 @@ import { Area } from "@models/Area";
 import { User } from "@models/User";
 import { OutputDevice } from "@models/OutputDevice";
 import { Plant } from "@models/Plant";
+import { updateSchedulerTimesRealTime } from "./realtime-service";
+
 /**
  * Connect a container to a user
  * @param {string} userId - The user ID
@@ -262,6 +265,150 @@ export const getOutputDevicesByContainerId = async (containerId) => {
   } catch (error) {
     console.error("Error fetching output devices:", error);
     throw error;
+  }
+};
+export const updateOutputDeviceStatus = async (deviceId, status) => {
+  if (!deviceId) {
+    console.error("Device ID is required");
+    return false;
+  }
+
+  if (status !== "active" && status !== "inactive") {
+    console.error("Status must be 'active' or 'inactive'");
+    return false;
+  }
+
+  try {
+    // Reference to the output device document
+    const deviceRef = doc(db, "outputDevices", deviceId);
+
+    // Update the status and timestamp
+    await updateDoc(deviceRef, {
+      status: status,
+      updatedAt: serverTimestamp(),
+      [status === "active" ? "lastActivatedAt" : "lastDeactivatedAt"]:
+        serverTimestamp(),
+    });
+
+    console.log(
+      `Output device ${deviceId} status updated to ${status} in Firestore`
+    );
+    return true;
+  } catch (error) {
+    console.error(
+      `Error updating output device ${deviceId} in Firestore:`,
+      error
+    );
+    return false;
+  }
+};
+export const updateOutputDeviceControlMethod = async (
+  deviceId,
+  controlMethod
+) => {
+  if (!deviceId) {
+    console.error("Device ID is required");
+    return false;
+  }
+
+  if (controlMethod !== "Manual" && controlMethod !== "Auto") {
+    console.error("Control method must be 'Manual' or 'Auto'");
+    return false;
+  }
+
+  try {
+    // Reference to the output device document
+    const deviceRef = doc(db, "outputDevices", deviceId);
+
+    // Update the control method and timestamp
+    await updateDoc(deviceRef, {
+      controlMethod: controlMethod,
+      updatedAt: serverTimestamp(),
+    });
+
+    console.log(
+      `Output device ${deviceId} control method updated to ${controlMethod} in Firestore`
+    );
+    return true;
+  } catch (error) {
+    console.error(
+      `Error updating output device ${deviceId} control method in Firestore:`,
+      error
+    );
+    return false;
+  }
+};
+
+export const updateSchedulerTimes = async (schedulerId, schedulerData) => {
+  try {
+    if (!schedulerId) {
+      console.error("Invalid scheduler ID provided");
+      return false;
+    }
+    const { startTime, endTime, date } = schedulerData;
+    if ((!startTime || !endTime, !date)) {
+      console.error("invalid scheduler data provided");
+      return false;
+    }
+    const [startHours, startMinutes] = startTime.split(":").map(Number);
+    const [endHours, endMinutes] = endTime.split(":").map(Number);
+
+    // create date object
+    const scheduledDate = new Date(date);
+    const startDateTime = new Date(scheduledDate);
+    startDateTime.setHours(startHours, startMinutes, 0, 0);
+
+    const endDateTime = new Date(scheduledDate);
+    endDateTime.setHours(endHours, endMinutes, 0, 0);
+
+    // convert to firestore timestamp
+    const startTimestamp = Timestamp.fromDate(startDateTime);
+    const endTimestamp = Timestamp.fromDate(endDateTime);
+
+    // scheduler document ref
+    const schedulerRef = doc(db, "schedules", schedulerId);
+    await updateDoc(schedulerRef, {
+      startTime: startTimestamp,
+      endTime: endTimestamp,
+    });
+    console.log(`Schedule updated for scheduler ${schedulerId}`);
+    return true;
+  } catch (err) {
+    console.error("Error updating scheduler: ", err);
+    return false;
+  }
+};
+
+export const updateSchedulerComplete = async (
+  containerId,
+  schedulerId,
+  deviceId,
+  scheduleData
+) => {
+  try {
+    // Update in Firestore
+    const firestoreSuccess = await updateSchedulerTimes(
+      schedulerId,
+      scheduleData
+    );
+
+    // Update in Real-time Database
+    const rtdbSuccess = await updateSchedulerTimesRealTime(
+      containerId,
+      schedulerId,
+      scheduleData
+    );
+
+    // If deviceId is provided, update device mode to Auto
+    if (deviceId && firestoreSuccess && rtdbSuccess) {
+      await updateOutputDeviceControlMethod(deviceId, "Auto");
+    }
+
+    // Return true only if both updates were successful
+    return firestoreSuccess && rtdbSuccess;
+  } catch (error) {
+    console.error("Error in complete scheduler update:", error);
+    return false;
   }
 };
 

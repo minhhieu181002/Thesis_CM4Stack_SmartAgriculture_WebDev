@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -8,79 +8,131 @@ import { CalendarPlus } from "lucide-react";
 import { getStatusInfo } from "@/utils/getStatusInfo";
 import { useOutputDevice } from "@/hooks/useOutputDevice";
 import { useCabinetContext } from "@/context/cabinet-context";
+import {
+  updateOutputDeviceStatus,
+  updateOutputDeviceControlMethod,
+} from "@/services/firestore-services";
 
 export function PumpCard({ pump, onUpdatePump, onOpenScheduleModal }) {
   const { firstCabinet } = useCabinetContext();
   const containerId = firstCabinet?.id;
   const { toggleDevice, isUpdating } = useOutputDevice(containerId);
+  const [localIsUpdating, setLocalIsUpdating] = useState(false);
 
+  // Don't render without pump data
   if (!pump) return null;
 
-  const handleModeChange = (newMode) => {
-    // Update local UI state
-    onUpdatePump(pump.id, { mode: newMode });
+  // Use the current value directly from props
+  const actualMode = pump.mode || "Manual";
+  const statusInfo = getStatusInfo(pump);
 
-    // TODO: If you want to save mode changes to RTDB, add that here
-    // This would require a new function in your realtimeService.js
-  };
+  // Combined loading state to prevent multiple toggles
+  const isDisabled = isUpdating || localIsUpdating;
 
-  const handleManualToggle = async (isChecked) => {
-    // Update UI immediately for responsive feel
-    onUpdatePump(pump.id, { manualState: isChecked });
+  const handleModeChange = async (newMode) => {
+    if (newMode === actualMode || isDisabled) return;
 
-    // Update the actual device in RTDB
+    setLocalIsUpdating(true);
+
     try {
-      const newStatus = await toggleDevice(pump.id);
+      // First update the UI for responsiveness
+      onUpdatePump(pump.id, { mode: newMode });
 
-      // If the update was unsuccessful, revert the UI
-      if (newStatus === null) {
-        // Revert the UI change
-        onUpdatePump(pump.id, { manualState: !isChecked });
-      } else {
-        // Ensure UI state matches the actual state returned from the server
-        onUpdatePump(pump.id, { manualState: newStatus === "active" });
-      }
+      // Then update Firestore
+      await updateOutputDeviceControlMethod(pump.id, newMode);
     } catch (error) {
-      // On error, revert the UI change
-      onUpdatePump(pump.id, { manualState: !isChecked });
-      console.error("Failed to update device status:", error);
+      console.error("Error updating control method:", error);
+      // Revert UI on error
+      onUpdatePump(pump.id, { mode: actualMode });
+    } finally {
+      setLocalIsUpdating(false);
     }
   };
 
-  const statusInfo = getStatusInfo(pump);
+  const handleManualToggle = async (isChecked) => {
+    if (isDisabled) return;
+
+    setLocalIsUpdating(true);
+
+    // Store current values to revert if needed
+    const originalMode = pump.mode;
+    const originalState = pump.manualState;
+
+    try {
+      // 1. First ensure we're in Manual mode and update UI
+      if (originalMode !== "Manual") {
+        onUpdatePump(pump.id, {
+          mode: "Manual",
+          manualState: isChecked,
+        });
+
+        // Update the control method in Firestore
+        await updateOutputDeviceControlMethod(pump.id, "Manual");
+      } else {
+        // Just update the manual state if already in Manual mode
+        onUpdatePump(pump.id, { manualState: isChecked });
+      }
+
+      // 2. Now toggle the device in RTDB
+      const newStatus = await toggleDevice(pump.id);
+
+      // 3. Update Firestore to match RTDB
+      if (newStatus !== null) {
+        await updateOutputDeviceStatus(pump.id, newStatus);
+
+        // 4. Final UI update with the actual status from server
+        onUpdatePump(pump.id, {
+          mode: "Manual", // Ensure we stay in Manual mode
+          manualState: newStatus === "active",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to update device status:", error);
+
+      // Revert to original state on error
+      onUpdatePump(pump.id, {
+        mode: originalMode,
+        manualState: originalState,
+      });
+    } finally {
+      setLocalIsUpdating(false);
+    }
+  };
 
   return (
-    <Card className="bg-gray-50 border border-gray-200 rounded-lg p-8 ">
-      {/* Main 2-Column Layout */}
+    <Card className="bg-gray-50 border border-gray-200 rounded-lg p-8">
       <div className="flex flex-col md:flex-row gap-4 justify-between">
-        {/* Column 1: Pump Info */}
         <div className="">
           <CardTitle className="font-semibold text-gray-800">
             {pump.name}
           </CardTitle>
           <CardDescription className="text-base text-gray-500 pump-status mt-2">
             Status:{" "}
-            {pump.mode === "Manual"
-              ? `${statusInfo.text} (Manual)`
-              : `${statusInfo.text}${
-                  pump.schedule
-                    ? ` (${pump.schedule.start} - ${pump.schedule.end})`
-                    : " (No Schedule)"
-                }`}
+            {pump.mode === "Manual" ? (
+              `${statusInfo.text} (Manual)`
+            ) : pump.schedule ? (
+              <>
+                {`${statusInfo.text} (Auto)`}
+                {/* <span className="block mt-1">
+                  <span className="ml-2">ON: {statusInfo.startTime}</span>
+                  <br />
+                  <span className="ml-2">OFF: {statusInfo.endTime}</span>
+                </span> */}
+              </>
+            ) : (
+              `${statusInfo.text}`
+            )}
           </CardDescription>
         </div>
 
-        {/* Column 2: Controls Container */}
-        <div className=" ">
-          {/* Two-column layout for controls */}
+        <div className="">
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* Left Controls Column: Mode Selector */}
             <div className="sm:w-1/2">
               <Label className="text-base font-medium text-gray-600 mb-2 block">
                 Mode:
               </Label>
               <RadioGroup
-                defaultValue={pump.mode}
+                value={actualMode}
                 onValueChange={handleModeChange}
                 className="flex items-center space-x-2"
                 aria-label={`Mode for ${pump.name}`}
@@ -155,7 +207,9 @@ export function PumpCard({ pump, onUpdatePump, onOpenScheduleModal }) {
                 <div className="manual-controls flex items-center space-x-2 py-8 px-2">
                   <Switch
                     id={`toggle-${pump.id}`}
-                    checked={pump.manualState}
+                    checked={
+                      pump.manualState === undefined ? false : pump.manualState
+                    }
                     onCheckedChange={handleManualToggle}
                     aria-label={`Toggle ${pump.name} manually`}
                     disabled={isUpdating}
@@ -164,30 +218,51 @@ export function PumpCard({ pump, onUpdatePump, onOpenScheduleModal }) {
                   />
                 </div>
               ) : (
-                <div className="auto-controls flex items-center space-x-2 py-8">
-                  <span
-                    className="text-base text-gray-600 schedule-display truncate "
-                    title={
-                      pump.schedule
-                        ? `ON ${pump.schedule.start} - ${pump.schedule.end}`
-                        : "Not Set"
-                    }
-                  >
-                    {pump.schedule
-                      ? `ON ${pump.schedule.start}-${pump.schedule.end}`
-                      : "Not Set"}
-                  </span>
+                <>
+                  <div className="auto-controls flex flex-col sm:flex-row items-start sm:items-center gap-3 py-3">
+                    <div className="text-base text-gray-600 schedule-display flex-1">
+                      {pump.schedule ? (
+                        <div className="space-y-1">
+                          <div className="font-medium flex items-center">
+                            <span className="w-12 inline-block text-gray-500">
+                              ON:
+                            </span>
+                            <span className="text-blue-600">
+                              {pump.schedule.startTime}
+                            </span>
+                          </div>
+                          <div className="font-medium flex items-center">
+                            <span className="w-12 inline-block text-gray-500">
+                              OFF:
+                            </span>
+                            <span className="text-blue-600">
+                              {pump.schedule.endTime}
+                            </span>
+                          </div>
+                          {pump.schedule.date && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Scheduled for {pump.schedule.date}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="italic text-gray-400">
+                          No schedule set
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => onOpenScheduleModal(pump.id)}
-                    className="px-2 py-1 text-sm rounded-md bg-green-500 text-white hover:bg-green-600 flex items-center"
-                    disabled={isUpdating}
+                    className="shrink-0 px-3 py-1 text-sm rounded-md bg-green-500 text-white hover:bg-green-600 flex items-center self-end sm:self-center"
+                    disabled={isDisabled}
                   >
-                    <CalendarPlus className="mr-1 h-4 w-4" />
-                    Edit
+                    <CalendarPlus className="mr-1.5 h-4 w-4" />
+                    {pump.schedule ? "Edit" : "Set"}
                   </Button>
-                </div>
+                </>
               )}
             </div>
           </div>

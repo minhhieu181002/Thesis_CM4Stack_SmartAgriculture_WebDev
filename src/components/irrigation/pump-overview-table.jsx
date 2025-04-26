@@ -50,7 +50,7 @@ export function PumpOverviewTable({ pumps }) {
               pumps.map((pump) => {
                 const statusInfo = getStatusInfo(pump);
                 const scheduleText = pump.schedule
-                  ? `${pump.schedule.start} - ${pump.schedule.end}`
+                  ? `${pump.schedule.startTime} - ${pump.schedule.endTime}`
                   : "Not Set";
                 return (
                   <TableRow key={pump.id} className="hover:bg-gray-50">

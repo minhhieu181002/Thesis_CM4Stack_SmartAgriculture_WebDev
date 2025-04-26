@@ -1,13 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useCabinetContext } from "@/context/cabinet-context";
 import { ref, onValue } from "firebase/database";
 import { rtdb } from "../services/firebase";
+import { useSchedulers } from "./useScheduler";
 
 export function useIrrigationDevices() {
   const { outputDevices, areas, loading, error, firstCabinet } =
     useCabinetContext();
   const [pumpData, setPumpData] = useState({});
 
+  const schedulerDevices = useMemo(() => {
+    return outputDevices.map((device) => ({
+      id: device.id,
+      controlMethod: device.controlMethod,
+      schedulerId: device.schedulerId,
+    }));
+  }, [outputDevices]);
+  // fetch scheduler for data devices
+  const {
+    schedulers,
+    loading: schedulersLoading,
+    error: schedulersError,
+  } = useSchedulers(schedulerDevices);
+  console.log("the ouput devices", schedulerDevices);
   // Initialize pump data from Firestore
   useEffect(() => {
     if (outputDevices.length > 0) {
@@ -18,22 +33,27 @@ export function useIrrigationDevices() {
         if (device.type === "pump") {
           const area = areas.find((area) => area.id === device.areaId);
           const areaName = area?.name || "Unknown Area";
-
+          const scheduler = schedulers[device.id];
           devices[device.id] = {
             id: device.id,
             name: device.name || `Pump ${device.id}`,
             area: areaName,
             mode: device.controlMethod || "Manual",
             manualState: device.status === "active",
-            // You'll need to determine how schedule data is stored in your system
-            // This is a placeholder assuming no schedule data
-            schedule: device.schedule || null,
+            schedulerId: device.schedulerId || null,
+            schedule: scheduler
+              ? {
+                  startTime: scheduler.startTime,
+                  endTime: scheduler.endTime,
+                  status: scheduler.status,
+                }
+              : null,
           };
         }
       });
       setPumpData(devices);
     }
-  }, [outputDevices, areas]);
+  }, [outputDevices, areas, schedulers]);
 
   // Listen for real-time changes to device statuses in RTDB
   useEffect(() => {
@@ -96,7 +116,7 @@ export function useIrrigationDevices() {
 
   return {
     pumpData,
-    isLoading: loading,
-    error: error,
+    isLoading: loading || schedulersLoading,
+    error: error || schedulersError,
   };
 }

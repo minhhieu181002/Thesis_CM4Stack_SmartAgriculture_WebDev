@@ -5,6 +5,7 @@ export class OutputDevice {
     this.areaId = data.areaId;
     this.containerId = data.containerId;
     this.controlMethod = data.controlMethod;
+    this.schedulerId = data.schedulerId;
     this.name = data.name;
     this.status = data.status;
     this.type = data.type;
