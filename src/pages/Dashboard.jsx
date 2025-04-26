@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BarChart3, Droplets, Gauge, Sprout } from "lucide-react";
 import { CabinetOverviewCard } from "@/components/ui/cabinet-overview-card";
 import { SensorsDisplay } from "@/components/ui/sensors-display";
+import UpcomingTasks from "@/components/dashboard-component/upcoming-task";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useUserCabinetStats } from "@/hooks/useUserCabinetStats";
 import { EmptyDashboard } from "./EmptyDashboard";
@@ -77,7 +78,8 @@ function Dashboard() {
               <h2 className="text-2xl font-bold mb-4">Upcoming Tasks</h2>
               <Card>
                 <CardContent>
-                  <p className="text-muted-foreground">No upcoming tasks</p>
+                  {/* <p className="text-muted-foreground">No upcoming tasks</p> */}
+                  <UpcomingTasks />
                 </CardContent>
               </Card>
             </div>

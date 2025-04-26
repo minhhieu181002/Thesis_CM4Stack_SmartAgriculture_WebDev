@@ -20,7 +20,7 @@ import { User } from "@models/User";
 import { OutputDevice } from "@models/OutputDevice";
 import { Plant } from "@models/Plant";
 import { updateSchedulerTimesRealTime } from "./realtime-service";
-
+import { Scheduler } from "@/models/Scheduler";
 /**
  * Connect a container to a user
  * @param {string} userId - The user ID
@@ -37,10 +37,6 @@ export const connectContainerToUser = async (userId, containerId) => {
     }
     // Then check if the container is already connected to the user
     const containerData = containerSnap.data();
-    // if (containerData.userId && containerData.userId !== userId) {
-    //   throw new Error("This container is already assigned to another user");
-    // }
-    // Update the container with the user ID if it's not already set
     if (!containerData.userId) {
       await updateDoc(containerRef, {
         userId: userId,
@@ -336,6 +332,39 @@ export const updateOutputDeviceControlMethod = async (
       error
     );
     return false;
+  }
+};
+
+export const getSchedulerById = async (schedulerId) => {
+  if (!schedulerId) {
+    console.error("No scheduler ID provided");
+    return null;
+  }
+
+  try {
+    const schedulerDoc = await getDoc(doc(db, "schedules", schedulerId));
+
+    if (!schedulerDoc.exists()) {
+      console.log(`No scheduler found with ID: ${schedulerId}`);
+      return null;
+    }
+
+    // Make sure the document has startTime and endTime fields
+    const data = schedulerDoc.data();
+    if (!data.startTime || !data.endTime) {
+      console.error(`Scheduler ${schedulerId} has invalid time data`, data);
+      return null;
+    }
+
+    // Create a new Scheduler instance directly
+    return new Scheduler(schedulerDoc.id, {
+      ...data,
+      startTime: data.startTime?.toDate?.() || data.startTime,
+      endTime: data.endTime?.toDate?.() || data.endTime,
+    });
+  } catch (error) {
+    console.error(`Error fetching scheduler ${schedulerId}:`, error);
+    return null;
   }
 };
 
