@@ -133,7 +133,8 @@ export function PlantFieldGrid({ plantIds = [], onPlantDeleted }) {
               lastUpdated={plant.lastUpdatedText}
               // icon={field.icon}
               status={plant.status}
-              image={"/public/" + plant.imageUrl || defaultPlantImage}
+              // image={"/public/" + plant.imageUrl || defaultPlantImage}
+              image={plant.imageUrl ? `/${plant.imageUrl}` : defaultPlantImage}
               category={plant.category?.[0] || "Unknown"}
               onDeleted={handlePlantDeleted}
             />
