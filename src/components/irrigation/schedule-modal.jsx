@@ -79,6 +79,7 @@ export function ScheduleModal({ isOpen, onClose, pumpToEdit, onSaveSchedule }) {
         throw new Error("No cabinet selected");
       }
       console.log(scheduleData);
+      console.log("deviceId is: ", deviceId);
       // Update both databases using our combined method
       const success = await updateSchedulerComplete(
         containerId,
